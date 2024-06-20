@@ -189,16 +189,28 @@ function ForceGraph() {
     const fgRef = useRef();
 
     const transformData = (apiResponse) => {
+        const colors = ["#fa9d9d", "#f4fa9d", "#9dfad0", " #72fc7f", "#a7e7fa", "#b0b8f7", "#d7dbfa", "#ad8080", "#d391ed", "#feb0ff", "#fa4b4b"]
+        let colorIndex = 0
+        const objType = {}
         const nodes = apiResponse.nodes.map((nodeData) => {
             // const { node } = nodeData;
             const { id, type, properties } = nodeData;
+            if (colorIndex == colors.length) {
+                colorIndex = 0
+            }
+
+            if (!objType[type]) {
+                objType[type] = colors[colorIndex]
+                colorIndex++
+            }
+
             return {
                 id,
                 name: id,
                 type,
                 properties: properties,
-                parentColor: "#735da5",
-                childColor: "#e0bcdd",
+                parentColor: objType[type],
+                childColor: "",
                 collapsed: false
             };
         });
@@ -225,7 +237,6 @@ function ForceGraph() {
 
     const handleNodeClick = (node) => {
         setSelectedNode(node);
-        console.log({ node })
         setModalOpen(true);
     };
 
@@ -337,10 +348,7 @@ function ForceGraph() {
 
     useEffect(() => {
         const fg = fgRef.current;
-        // fg.d3Force('charge').strength(-1000);
         fg.d3Force("link").distance(120)
-        // fg.d3Force("center").strength(2)
-        // fg.zoomToFit(100, 10/0);
     }, []);
 
     function onEngineStop() {
@@ -359,8 +367,8 @@ function ForceGraph() {
                 nodeLabel="name"
                 linkLabel="name"
                 onNodeClick={handleNodeClick}
-                nodeAutoColorBy={"origin"}
-                minZoom={3}
+                nodeAutoColorBy={"parentColor"}
+                minZoom={2.5}
                 maxZoom={10}
                 zoom={10}
                 height={600}
@@ -368,13 +376,12 @@ function ForceGraph() {
                 nodeRelSize={10}
                 nodeResolution={10}
                 linkResolution={10}
-                nodeDesc="hmm"
-                linkDirectionalArrowLength={8}
+                linkDirectionalArrowLength={6}
                 linkDirectionalArrowRelPos={1}
                 nodeCanvasObject={(node, ctx) => {
                     const size = 23;
                     const radius = size / 2;
-                    const fontSize = 4;
+                    const fontSize = 4.5;
                     const nodeNameOffset = 0;
                     const fontWeight = 'bold';
 
@@ -388,17 +395,17 @@ function ForceGraph() {
                         ctx.drawImage(img, node.x - radius, node.y - radius, size, size);
                         ctx.restore();
 
-                        ctx.font = `${fontSize}px Arial`;
+                        ctx.font = `${fontSize}px Open Sans, sans-serif`;
                         ctx.fillStyle = 'black';
                         ctx.textAlign = 'center';
                         ctx.fillText(node.name, node.x, node.y + radius + fontSize + nodeNameOffset);
                     } else {
                         ctx.beginPath();
                         ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-                        ctx.fillStyle = "#ADD8E6";
+                        ctx.fillStyle = node.parentColor;
                         ctx.fill();
 
-                        ctx.font = `${fontWeight} ${fontSize}px Arial`;
+                        ctx.font = `${fontWeight} ${fontSize}px Open Sans, sans-serif`;
                         ctx.fillStyle = 'black';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
@@ -406,26 +413,25 @@ function ForceGraph() {
                     }
 
                     // Draw expand/collapse button
-                    const hasChildren = graphData.nodes.some(n => n.parent === node.id);
-                    if (hasChildren) {
-                        const buttonSize = 10;
-                        const buttonX = node.x + radius + 5;
-                        const buttonY = node.y;
-                        ctx.beginPath();
-                        ctx.arc(buttonX, buttonY, buttonSize / 2, 0, 2 * Math.PI);
-                        ctx.fillStyle = node.collapsed ? 'green' : 'red';
-                        ctx.fill();
-                        ctx.font = `${fontSize}px Arial`;
-                        ctx.fillStyle = 'white';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(node.collapsed ? '+' : '-', buttonX, buttonY);
-                    }
+                    // const hasChildren = graphData.nodes.some(n => n.parent === node.id);
+                    // if (hasChildren) {
+                    //     const buttonSize = 10;
+                    //     const buttonX = node.x + radius + 5;
+                    //     const buttonY = node.y;
+                    //     ctx.beginPath();
+                    //     ctx.arc(buttonX, buttonY, buttonSize / 2, 0, 2 * Math.PI);
+                    //     ctx.fillStyle = node.collapsed ? 'green' : 'red';
+                    //     ctx.fill();
+                    //     ctx.font = `${fontSize}px Arial`;
+                    //     ctx.fillStyle = 'white';
+                    //     ctx.textAlign = 'center';
+                    //     ctx.textBaseline = 'middle';
+                    //     ctx.fillText(node.collapsed ? '+' : '-', buttonX, buttonY);
+                    // }
                 }}
 
                 linkCanvasObjectMode={() => 'after'}
                 linkCanvasObject={(link, ctx, globalScale) => {
-                    // console.log({ link })
                     const MAX_FONT_SIZE = 4;
                     const LABEL_NODE_MARGIN = 4;
 
@@ -445,9 +451,10 @@ function ForceGraph() {
                     if (linkLength < LABEL_NODE_MARGIN * 2) return;
 
                     // Estimate fontSize to fit in link length
-                    const fontSize = Math.min(MAX_FONT_SIZE, linkLength / 8);
+                    const fontSize = 4
+                    const fontWeight = 700
 
-                    ctx.font = `${fontSize}px Sans-Serif`;
+                    ctx.font = `${fontWeight} ${fontSize}px Open Sans, sans-serif`;
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
 
                     // Rotate text along link direction
