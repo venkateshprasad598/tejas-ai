@@ -371,7 +371,7 @@ function ForceGraph() {
                 minZoom={2.5}
                 maxZoom={10}
                 zoom={10}
-                height={600}
+                // height={600}
                 showNavInfo={true}
                 nodeRelSize={10}
                 nodeResolution={10}
