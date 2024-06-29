@@ -17,6 +17,7 @@ const GraphPropertiesDrawer = ({ modalOpen, handleModalClose, selectedNode }) =>
     const formatKey = (key) => {
         return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
+    let isAvailable = false
     return (
         <div> <Drawer
             anchor={"right"}
@@ -44,7 +45,7 @@ const GraphPropertiesDrawer = ({ modalOpen, handleModalClose, selectedNode }) =>
                     {selectedNode?.properties && Object.keys(selectedNode?.properties)?.length ? (
                         orderedKeys.map((data, key) => {
                             if (selectedNode.properties.hasOwnProperty(data)) {
-
+                                isAvailable = true
                                 return (
                                     <div className="graph-details-main">
                                         <span className="graph-details-title">{formatKey(data)}</span>
@@ -56,7 +57,9 @@ const GraphPropertiesDrawer = ({ modalOpen, handleModalClose, selectedNode }) =>
                         })
                     ) : "N/A"
 
+
                     }
+                    {!isAvailable && <span>N/A</span>}
                 </div>
 
 
