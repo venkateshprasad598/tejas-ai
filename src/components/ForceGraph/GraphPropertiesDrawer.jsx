@@ -13,6 +13,10 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 const GraphPropertiesDrawer = ({ modalOpen, handleModalClose, selectedNode }) => {
 
+    const orderedKeys = ["event_type", "event_summary", "expected_minimum_strength", "expected_maximum_strength", "start_event_date", "start_event_time", "end_event_date", "end_event_time", "role_in_event", "designation", "contact_no", "Venue", "Reason", "Nature_of_Event", "Route", "start_point", "mid_points", "end_point"]
+    const formatKey = (key) => {
+        return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
     return (
         <div> <Drawer
             anchor={"right"}
@@ -38,13 +42,17 @@ const GraphPropertiesDrawer = ({ modalOpen, handleModalClose, selectedNode }) =>
                 <span className="graph-details-heading">Details</span>
                 <div className="graph-details">
                     {selectedNode?.properties && Object.keys(selectedNode?.properties)?.length ? (
-                        Object.keys(selectedNode?.properties)?.map((data) => {
-                            return (
-                                <div className="graph-details-main">
-                                    <span className="graph-details-title">{data}</span>
-                                    <span className="graph-details-desc">{selectedNode?.properties?.[data] || "N/A"}</span>
-                                </div>
-                            )
+                        orderedKeys.map((data, key) => {
+                            if (selectedNode.properties.hasOwnProperty(data)) {
+
+                                return (
+                                    <div className="graph-details-main">
+                                        <span className="graph-details-title">{formatKey(data)}</span>
+                                        <span className="graph-details-desc">{selectedNode?.properties?.[data] || "N/A"}</span>
+                                    </div>
+                                )
+                            }
+                            return null
                         })
                     ) : "N/A"
 
