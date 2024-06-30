@@ -83,3 +83,14 @@
 .description {
   font-size: 1.2rem;
 }
+
+@media only screen and (max-width: 600px) {
+  .search-input {
+    width: 200px;
+  }
+
+  .description {
+    text-align: center;
+    max-width: 90%;
+  }
+}
