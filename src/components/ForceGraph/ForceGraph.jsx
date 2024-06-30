@@ -24,51 +24,8 @@ const initialData = {
 
 function ForceGraph() {
     const fgRef = useRef();
-    const objType = {}
 
-    const transformData = async (apiResponse) => {
 
-        const colors = ["#fa9d9d", "#f4fa9d", "#9dfad0", " #72fc7f", "#a7e7fa", "#b0b8f7", "#d7dbfa", "#ad8080", "#d391ed", "#feb0ff", "#fa4b4b"]
-        let colorIndex = 0
-        const uniqueLabels = []
-
-        console.log({ apiResponse })
-
-        const nodes = apiResponse.nodes.map((nodeData) => {
-            // const { node } = nodeData;
-            const { id, label, properties } = nodeData;
-            if (colorIndex == colors.length) {
-                colorIndex = 0
-            }
-
-            console.log({ label: label?.[0] })
-
-            if (label?.[0] && !objType[label?.[0]]) {
-                console.log({ labels: label?.[0], uniqueLabels })
-
-                objType[label[0]] = colors[colorIndex]
-                colorIndex++
-                uniqueLabels.push(label[0])
-            }
-
-            // delete properties["id"]
-
-            return {
-                id,
-                name: properties?.id || "",
-                // type,
-                properties: properties,
-                parentColor: objType[label?.[0]] || "black",
-                childColor: "",
-                collapsed: false,
-                label: label?.[0] || ""
-            };
-        });
-
-        const links = apiResponse.relationships
-
-        return { nodes, links, uniqueLabels };
-    };
 
     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
     const [graphDataLoading, setGraphDataLoading] = useState({
@@ -92,7 +49,49 @@ function ForceGraph() {
     const [uniqueLabels, setUniqueLabels] = useState([]);
     const [selectedLabels, setSelectedLabels] = useState([]);
     const [isRefGiven, setRefGiven] = useState(false)
+    const [colorObjs, setColorObjs] = useState({})
+    const [colorCount, setColorCount] = useState(0)
 
+
+    const transformData = (apiResponse) => {
+
+        const colors = ["#fa9d9d", "#f4fa9d", "#9dfad0", " #72fc7f", "#a7e7fa", "#b0b8f7", "#d7dbfa", "#ad8080", "#d391ed", "#feb0ff", "#fa4b4b"]
+        let colorIndex = colorCount
+        const uniqueLabels = []
+        const objType = {}
+
+
+
+        const nodes = apiResponse.nodes.map((nodeData) => {
+            const { id, label, properties } = nodeData;
+            if (colorIndex == colors.length) {
+                colorIndex = 0
+            }
+
+            if (label?.[0] && !objType[label?.[0]] && !uniqueLabels?.includes(label?.[0])) {
+                objType[label[0]] = colors[colorIndex]
+                colorIndex++
+                uniqueLabels.push(label[0])
+            }
+
+            // delete properties["id"]
+            setColorCount(colorIndex)
+            return {
+                id,
+                name: properties?.id || "",
+                // type,
+                properties: properties,
+                parentColor: objType[label?.[0]] || "black",
+                childColor: "",
+                collapsed: false,
+                label: label?.[0] || ""
+            };
+        });
+
+        const links = apiResponse.relationships
+
+        return { nodes, links, uniqueLabels, objType };
+    };
     const handleNodeClick = (node) => {
 
         if (fgRef?.current && !isRefGiven) {
@@ -169,8 +168,10 @@ function ForceGraph() {
                 const response = await axios.get(`http://152.52.105.186:8050/search-by-keyword?keyword_val=${term}`);
                 if (response?.status == 200) {
                     const responseArr = response?.data || { nodes: [], relationships: [] }
-                    const searchedDataRes = await transformData(responseArr)
+                    const searchedDataRes = transformData(responseArr)
                     const initUniqueLabels = searchedDataRes?.uniqueLabels
+                    const intColorObjs = searchedDataRes?.objType || {}
+
                     console.log({ searchedDataRes, initUniqueLabels })
 
                     const searchedData = { nodes: searchedDataRes?.nodes, links: searchedDataRes?.links }
@@ -180,6 +181,7 @@ function ForceGraph() {
 
                     setSelectedLabels(initUniqueLabels)
                     setUniqueLabels(initUniqueLabels)
+                    setColorObjs(intColorObjs)
 
                     setGraphDataLoading({
                         loading: false,
@@ -214,12 +216,17 @@ function ForceGraph() {
 
             if (response?.status == 200) {
                 const responseArr = response?.data
+                console.log({ responseArr })
                 const searchedData = transformData(responseArr)
 
+                console.log({ searchedData: searchedData?.nodes })
                 const removeSelectedNode = searchedData?.nodes?.filter(data => data?.id !== id)
 
-                const newInitUniqueLabels = searchedData?.uniqueLabels || []
-                const initUniqueLabels = newInitUniqueLabels?.filter((data) => !uniqueLabels.includes(data))
+                const initUniqueLabels = searchedData?.uniqueLabels || []
+                const intColorObjs = searchedData?.objType || {}
+
+
+                // const initUniqueLabels = newInitUniqueLabels?.filter((data) => !uniqueLabels.includes(data))
                 const newGraphData = {
                     nodes: [...graphData.nodes, ...removeSelectedNode],
                     links: [...graphData.links, ...searchedData.links]
@@ -229,6 +236,7 @@ function ForceGraph() {
 
                 setSelectedLabels([...selectedLabels, ...initUniqueLabels])
                 setUniqueLabels([...uniqueLabels, ...initUniqueLabels])
+                setColorObjs({ ...colorObjs, ...intColorObjs })
 
             }
         } catch (error) {
@@ -424,7 +432,7 @@ function ForceGraph() {
                             />
                             {label}
                             <span style={{
-                                height: "10px", width: "30px", backgroundColor: objType[label],
+                                height: "10px", width: "30px", backgroundColor: colorObjs[label],
                                 display: 'inline-block',
                                 marginRight: '5px',
                                 marginLeft: '5px'
