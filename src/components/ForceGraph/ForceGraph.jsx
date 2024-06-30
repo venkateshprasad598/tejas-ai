@@ -165,7 +165,7 @@ function ForceGraph() {
                 error: false
             })
             try {
-                const response = await axios.get(`http://152.52.105.186:8050/search-by-keyword?keyword_val=${term}`);
+                const response = await axios.get(`https://152.52.105.186:8050/search-by-keyword?keyword_val=${term}`);
                 if (response?.status == 200) {
                     const responseArr = response?.data || { nodes: [], relationships: [] }
                     const searchedDataRes = transformData(responseArr)
@@ -212,7 +212,7 @@ function ForceGraph() {
 
         if (!label || !id) return
         try {
-            const response = await axios.get(`http://152.52.105.186:8050/get-on-click?id=${id}&label=${label}`);
+            const response = await axios.get(`https://152.52.105.186:8050/get-on-click?id=${id}&label=${label}`);
 
             if (response?.status == 200) {
                 const responseArr = response?.data
@@ -222,11 +222,11 @@ function ForceGraph() {
                 console.log({ searchedData: searchedData?.nodes })
                 const removeSelectedNode = searchedData?.nodes?.filter(data => data?.id !== id)
 
-                const initUniqueLabels = searchedData?.uniqueLabels || []
+                const newInitUniqueLabels = searchedData?.uniqueLabels || []
                 const intColorObjs = searchedData?.objType || {}
 
 
-                // const initUniqueLabels = newInitUniqueLabels?.filter((data) => !uniqueLabels.includes(data))
+                const initUniqueLabels = newInitUniqueLabels?.filter((data) => !uniqueLabels.includes(data))
                 const newGraphData = {
                     nodes: [...graphData.nodes, ...removeSelectedNode],
                     links: [...graphData.links, ...searchedData.links]
