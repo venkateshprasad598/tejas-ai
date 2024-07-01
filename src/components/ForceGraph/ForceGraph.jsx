@@ -1,18 +1,15 @@
-import React, { useLayoutEffect } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
-import { graphDataObjEx } from "../../constant/index";
-import GraphPropertiesDrawer from './GraphPropertiesDrawer';
 import axios from 'axios';
 import { debounce } from 'lodash';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import ForceGraph2D from 'react-force-graph-2d';
+import GraphPropertiesDrawer from './GraphPropertiesDrawer';
 
-import "./ForceGraph.css"
-import { showMoreData } from '../../constant';
 import { Skeleton } from '@mui/material';
 import { Stack } from '@mui/system';
+import "./ForceGraph.css";
 import ShowMoreGraph from './ShowMoreGraph';
+import SearchIcon from '@mui/icons-material/Search';
+
 
 const initialData = {
     nodes: [
@@ -157,53 +154,56 @@ function ForceGraph() {
         return { connectedNodes, connectedLinks };
     };
 
-    const debouncedSearch = useCallback(
-        debounce(async (term) => {
-            setisInitialRender(false)
-            setGraphDataLoading({
-                loading: true,
-                error: false
-            })
-            try {
-                const response = await axios.get(`https://152.52.105.186:8050/search-by-keyword?keyword_val=${term}`);
-                if (response?.status == 200) {
-                    const responseArr = response?.data || { nodes: [], relationships: [] }
-                    const searchedDataRes = transformData(responseArr)
-                    const initUniqueLabels = searchedDataRes?.uniqueLabels
-                    const intColorObjs = searchedDataRes?.objType || {}
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            performSearch();
+        }
+    };
 
-                    console.log({ searchedDataRes, initUniqueLabels })
+    const performSearch = async () => {
+        setisInitialRender(false)
+        setGraphDataLoading({
+            loading: true,
+            error: false
+        })
+        try {
+            const response = await axios.get(`https://152.52.105.186:8050/search-by-keyword?keyword_val=${searchTerm}`);
+            if (response?.status == 200) {
+                const responseArr = response?.data || { nodes: [], relationships: [] }
+                const searchedDataRes = transformData(responseArr)
+                const initUniqueLabels = searchedDataRes?.uniqueLabels
+                const intColorObjs = searchedDataRes?.objType || {}
 
-                    const searchedData = { nodes: searchedDataRes?.nodes, links: searchedDataRes?.links }
+                console.log({ searchedDataRes, initUniqueLabels })
 
-                    setIntGraphData(searchedData)
-                    setGraphData(searchedData)
+                const searchedData = { nodes: searchedDataRes?.nodes, links: searchedDataRes?.links }
 
-                    setSelectedLabels(initUniqueLabels)
-                    setUniqueLabels(initUniqueLabels)
-                    setColorObjs(intColorObjs)
+                setIntGraphData(searchedData)
+                setGraphData(searchedData)
 
-                    setGraphDataLoading({
-                        loading: false,
-                        error: false
-                    })
-                } else {
-                    setGraphDataLoading({
-                        loading: false,
-                        error: true
-                    })
-                }
-                // setGraphData(response.data);
-            } catch (error) {
-                console.error('Error fetching search results:', error);
+                setSelectedLabels(initUniqueLabels)
+                setUniqueLabels(initUniqueLabels)
+                setColorObjs(intColorObjs)
+
+                setGraphDataLoading({
+                    loading: false,
+                    error: false
+                })
+            } else {
                 setGraphDataLoading({
                     loading: false,
                     error: true
                 })
             }
-        }, 300),
-        []
-    );
+            // setGraphData(response.data);
+        } catch (error) {
+            console.error('Error fetching search results:', error);
+            setGraphDataLoading({
+                loading: false,
+                error: true
+            })
+        }
+    }
 
     const handleShowMoreNodes = async (node) => {
 
@@ -221,6 +221,7 @@ function ForceGraph() {
 
                 console.log({ searchedData: searchedData?.nodes })
                 const removeSelectedNode = searchedData?.nodes?.filter(data => data?.id !== id)
+
 
                 const newInitUniqueLabels = searchedData?.uniqueLabels || []
                 const intColorObjs = searchedData?.objType || {}
@@ -246,11 +247,14 @@ function ForceGraph() {
 
     }
     const handleInputChange = (event) => {
+
+
+        // handleSearch
         const term = event.target.value;
         setSearchTerm(term);
         const fg = fgRef.current;
         console.log({ fg })
-        term?.trim()?.length && debouncedSearch(term);
+
     };
 
     // useEffect(() => {
@@ -265,9 +269,6 @@ function ForceGraph() {
         console.log({ isInitialRender })
 
     }, [isInitialRender]);
-
-
-    console.log({ uniqueLabels, selectedLabels })
 
 
     return (
@@ -287,139 +288,146 @@ function ForceGraph() {
                 </Stack>
                     : graphDataLoading?.error ?
                         <div className='demo-container'>Something Went Wrong</div>
-                        : <ForceGraph2D
-                            ref={fgRef}
-                            graphData={graphData}
-                            nodeLabel="name"
-                            linkLabel="name"
-                            onNodeClick={handleNodeClick}
-                            nodeAutoColorBy={"parentColor"}
-                            minZoom={0.5}
-                            maxZoom={10}
-                            zoom={10}
-                            // height={600}
-                            showNavInfo={true}
-                            nodeRelSize={10}
-                            nodeResolution={10}
-                            linkResolution={10}
-                            linkDirectionalArrowLength={6}
-                            linkDirectionalArrowRelPos={1}
-                            onNodeHover={node => setHoveredNode(node)}
-                            nodeCanvasObject={(node, ctx) => {
-                                const size = 23;
-                                const radius = size / 2;
-                                const fontSize = 4.5;
-                                const nodeNameOffset = 0;
-                                const fontWeight = 'bold';
+                        : !graphData?.nodes?.length ?
+                            <div className='demo-container'>No Data to  Display</div>
+                            : <ForceGraph2D
+                                ref={fgRef}
+                                graphData={graphData}
+                                nodeLabel="name"
+                                linkLabel="name"
+                                onNodeClick={handleNodeClick}
+                                nodeAutoColorBy={"parentColor"}
+                                minZoom={0.5}
+                                maxZoom={10}
+                                zoom={10}
+                                // height={600}
+                                showNavInfo={true}
+                                nodeRelSize={10}
+                                nodeResolution={10}
+                                linkResolution={10}
+                                linkDirectionalArrowLength={6}
+                                linkDirectionalArrowRelPos={1}
+                                onNodeHover={node => setHoveredNode(node)}
+                                nodeCanvasObject={(node, ctx) => {
+                                    const size = 23;
+                                    const radius = size / 2;
+                                    const fontSize = 4.5;
+                                    const nodeNameOffset = 0;
+                                    const fontWeight = 'bold';
 
-                                // const isConnected = hoveredNode && (node.id === hoveredNode.id || connectedNodes.has(node.id));
+                                    // const isConnected = hoveredNode && (node.id === hoveredNode.id || connectedNodes.has(node.id));
 
-                                const { connectedNodes } = hoveredNode ? getConnectedNodesAndLinks(hoveredNode.id) : { connectedNodes: new Set() };
-                                const isConnected = hoveredNode && (node.id === hoveredNode.id || connectedNodes.has(node.id));
-                                const isParent = hoveredNode && node.id === hoveredNode.id
-                                // const isConnected = hoveredNode && (node.id === hoveredNode.id || getConnectedNodes(hoveredNode.id).has(node.id));
-                                if (node.avatar) {
-                                    const img = new Image();
-                                    img.src = node.avatar;
-                                    ctx.save();
-                                    ctx.beginPath();
-                                    ctx.ellipse(node.x, node.y, radius, radius, 0, 0, 2 * Math.PI);
-                                    ctx.clip();
-                                    ctx.drawImage(img, node.x - radius, node.y - radius, size, size);
-                                    ctx.restore();
+                                    const { connectedNodes } = hoveredNode ? getConnectedNodesAndLinks(hoveredNode.id) : { connectedNodes: new Set() };
+                                    const isConnected = hoveredNode && (node.id === hoveredNode.id || connectedNodes.has(node.id));
+                                    const isParent = hoveredNode && node.id === hoveredNode.id
+                                    // const isConnected = hoveredNode && (node.id === hoveredNode.id || getConnectedNodes(hoveredNode.id).has(node.id));
+                                    if (node.avatar) {
+                                        const img = new Image();
+                                        img.src = node.avatar;
+                                        ctx.save();
+                                        ctx.beginPath();
+                                        ctx.ellipse(node.x, node.y, radius, radius, 0, 0, 2 * Math.PI);
+                                        ctx.clip();
+                                        ctx.drawImage(img, node.x - radius, node.y - radius, size, size);
+                                        ctx.restore();
 
-                                    ctx.font = `${fontSize}px Open Sans, sans-serif`;
-                                    ctx.fillStyle = 'black';
-                                    ctx.textAlign = 'center';
-                                    ctx.fillText(node.name, node.x, node.y + radius + fontSize + nodeNameOffset);
-                                } else {
-                                    ctx.beginPath();
-                                    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-                                    ctx.fillStyle = node.parentColor;
-                                    ctx.fill();
+                                        ctx.font = `${fontSize}px Open Sans, sans-serif`;
+                                        ctx.fillStyle = 'black';
+                                        ctx.textAlign = 'center';
+                                        ctx.fillText(node.name, node.x, node.y + radius + fontSize + nodeNameOffset);
+                                    } else {
+                                        ctx.beginPath();
+                                        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
+                                        ctx.fillStyle = node.parentColor;
+                                        ctx.fill();
 
-                                    if (isConnected) {
-                                        ctx.strokeStyle = isParent ? "red" : isConnected ? '#a38724' : node.parentColor;
-                                        ctx.lineWidth = 6;
-                                        ctx.stroke();
+                                        if (isConnected) {
+                                            ctx.strokeStyle = isParent ? "red" : isConnected ? '#a38724' : node.parentColor;
+                                            ctx.lineWidth = 6;
+                                            ctx.stroke();
+                                        }
+
+                                        ctx.font = `${fontWeight} ${fontSize}px Open Sans, sans-serif`;
+                                        ctx.fillStyle = 'black';
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'middle';
+                                        ctx.fillText(node.name, node.x, node.y);
+
+
                                     }
+                                }}
+
+                                linkCanvasObjectMode={() => 'after'}
+                                linkCanvasObject={(link, ctx) => {
+                                    const LABEL_NODE_MARGIN = 4;
+
+                                    const start = link.source;
+                                    const end = link.target;
+
+                                    // Calculate the mid point
+                                    const textPos = Object.assign(...['x', 'y'].map(c => ({
+                                        [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
+                                    })));
+
+                                    const relLink = { x: end.x - start.x, y: end.y - start.y };
+
+                                    const linkLength = Math.sqrt(Math.pow(relLink.x, 2) + Math.pow(relLink.y, 2));
+
+                                    // Ignore short links
+                                    if (linkLength < LABEL_NODE_MARGIN * 2) return;
+
+                                    // Estimate fontSize to fit in link length
+                                    const fontSize = 4
+                                    const fontWeight = 700
 
                                     ctx.font = `${fontWeight} ${fontSize}px Open Sans, sans-serif`;
-                                    ctx.fillStyle = 'black';
+                                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+
+                                    // Rotate text along link direction
+                                    const angle = Math.atan2(relLink.y, relLink.x);
+                                    ctx.save();
+                                    ctx.translate(textPos.x, textPos.y);
+                                    ctx.rotate(angle);
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
-                                    ctx.fillText(node.name, node.x, node.y);
+                                    ctx.fillText(link.type, 0, 0);
+                                    ctx.restore();
+                                }}
 
-
-                                }
-                            }}
-
-                            linkCanvasObjectMode={() => 'after'}
-                            linkCanvasObject={(link, ctx) => {
-                                const LABEL_NODE_MARGIN = 4;
-
-                                const start = link.source;
-                                const end = link.target;
-
-                                // Calculate the mid point
-                                const textPos = Object.assign(...['x', 'y'].map(c => ({
-                                    [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
-                                })));
-
-                                const relLink = { x: end.x - start.x, y: end.y - start.y };
-
-                                const linkLength = Math.sqrt(Math.pow(relLink.x, 2) + Math.pow(relLink.y, 2));
-
-                                // Ignore short links
-                                if (linkLength < LABEL_NODE_MARGIN * 2) return;
-
-                                // Estimate fontSize to fit in link length
-                                const fontSize = 4
-                                const fontWeight = 700
-
-                                ctx.font = `${fontWeight} ${fontSize}px Open Sans, sans-serif`;
-                                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-
-                                // Rotate text along link direction
-                                const angle = Math.atan2(relLink.y, relLink.x);
-                                ctx.save();
-                                ctx.translate(textPos.x, textPos.y);
-                                ctx.rotate(angle);
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
-                                ctx.fillText(link.type, 0, 0);
-                                ctx.restore();
-                            }}
-
-                            onNodeDragEnd={node => {
-                                node.fx = node.x;
-                                node.fy = node.y;
-                            }}
+                                onNodeDragEnd={node => {
+                                    node.fx = node.x;
+                                    node.fy = node.y;
+                                }}
 
 
 
-                            linkColor={(link) => {
-                                if (!hoveredNode) return 'rgba(0, 0, 0, 0.2)';
-                                const { connectedLinks } = getConnectedNodesAndLinks(hoveredNode.id);
-                                return connectedLinks.has(link) ? '#b0aea7' : 'rgba(0, 0, 0, 0.2)';
-                            }}
-                            linkWidth={(link) => {
-                                if (!hoveredNode) return 1;
-                                const { connectedLinks } = getConnectedNodesAndLinks(hoveredNode.id);
-                                return connectedLinks.has(link) ? 4 : 1;
-                            }}
+                                linkColor={(link) => {
+                                    if (!hoveredNode) return 'rgba(0, 0, 0, 0.2)';
+                                    const { connectedLinks } = getConnectedNodesAndLinks(hoveredNode.id);
+                                    return connectedLinks.has(link) ? '#b0aea7' : 'rgba(0, 0, 0, 0.2)';
+                                }}
+                                linkWidth={(link) => {
+                                    if (!hoveredNode) return 1;
+                                    const { connectedLinks } = getConnectedNodesAndLinks(hoveredNode.id);
+                                    return connectedLinks.has(link) ? 4 : 1;
+                                }}
 
-                        />}
+                            />}
 
                 <div className='forceGraph-search-input'>
                     <input
                         type="text"
                         value={searchTerm}
                         onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+
                         placeholder="Search..."
                         style={{ marginBottom: '10px' }}
                         className='search-input'
                     />
+                    <div className='forceGraph-search-icon' onClick={performSearch}>
+                        <SearchIcon />
+                    </div>
                 </div>
 
                 {uniqueLabels?.length ? <div className='forceGraph-unique-labels'>
