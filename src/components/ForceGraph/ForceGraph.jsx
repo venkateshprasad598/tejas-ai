@@ -220,7 +220,10 @@ function ForceGraph() {
                 const searchedData = transformData(responseArr)
 
                 console.log({ searchedData: searchedData?.nodes })
-                const removeSelectedNode = searchedData?.nodes?.filter(data => data?.id !== id)
+
+                const previousNodes = []
+                graphData?.nodes?.map((data) => previousNodes?.push(data?.id))
+                const removeRepeatedNodes = searchedData?.nodes?.filter(data => !previousNodes?.includes(data?.id))
 
 
                 const newInitUniqueLabels = searchedData?.uniqueLabels || []
@@ -229,7 +232,7 @@ function ForceGraph() {
 
                 const initUniqueLabels = newInitUniqueLabels?.filter((data) => !uniqueLabels.includes(data))
                 const newGraphData = {
-                    nodes: [...graphData.nodes, ...removeSelectedNode],
+                    nodes: [...graphData.nodes, ...removeRepeatedNodes],
                     links: [...graphData.links, ...searchedData.links]
                 }
                 setGraphData(newGraphData);
