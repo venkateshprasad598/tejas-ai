@@ -161,6 +161,8 @@ function ForceGraph() {
     };
 
     const performSearch = async () => {
+
+        if (!searchTerm?.trim()) return
         setisInitialRender(false)
         setGraphDataLoading({
             loading: true,
