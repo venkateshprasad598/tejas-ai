@@ -431,7 +431,7 @@ function ForceGraph() {
                         className='search-input'
                     />
                     <div className='forceGraph-search-icon' onClick={performSearch}>
-                        <SearchIcon />
+                        <SearchIcon color = "primary" />
                     </div>
                 </div>
 
