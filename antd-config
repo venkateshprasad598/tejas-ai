@@ -1,0 +1,120 @@
+import { theme } from "antd";
+import { ConfigProviderProps } from "antd/es/config-provider";
+
+const { darkAlgorithm } = theme;
+
+export const configProvider: ConfigProviderProps = {
+  collapse: { className: "custom-collapse" },
+  // button={{className: "my-custom-btn"}},
+  select: { className: "custom-select" },
+  table: { className: "custom-table" },
+  timeline: { className: "custom-timeline" },
+  theme: {
+    algorithm: darkAlgorithm,
+    token: {
+      colorPrimary: "#c1a06a",
+      // colorBgBase: "#fff",
+    },
+    components: {
+      Input: {
+        colorBgContainer: "#464646",
+        hoverBg: "#464646",
+        activeBg: "#464646",
+        colorBgBase: "#fff",
+        borderRadius: 8,
+        activeBorderColor: "#c1a06a",
+        colorText: "#fff",
+        colorBorder: "transparent",
+        hoverBorderColor: "transparent",
+        boxShadow: "none",
+        activeShadow: "0",
+      },
+      Button: {
+        defaultBg: "#2C2C2C",
+        colorBorder: "transparent",
+        defaultShadow: "0px 1px 0px 0px rgba(0, 0, 0, 0.03)",
+        primaryShadow: "0px 1px 0px 0px rgba(0, 0, 0, 0.03)",
+        borderRadius: 4,
+        dangerColor: "white",
+        paddingInlineLG: 20,
+        defaultGhostColor: "#fff",
+        defaultGhostBorderColor: "rgba(255, 255, 255, 0.10)",
+        boxShadow:
+          "0px 1px 0px 0px rgba(0, 0, 0, 0.03), 0px 4px 4px 0px rgba(0, 0, 0, 0.05), 0px 8px 8px 0px rgba(0, 0, 0, 0.05)",
+      },
+      Checkbox: {
+        borderRadiusSM: 0,
+        controlInteractiveSize: 24,
+        colorBgBase: "#2C2C2C",
+        colorBgContainer: "#2C2C2C",
+        colorBorder: "#fff",
+      },
+      Collapse: {
+        fontSizeIcon: 18,
+        headerBg: "transparent",
+      },
+      Table: {
+        colorBgContainer: "#2C2C2C",
+        colorText: "#fff",
+        headerBg:
+          "linear-gradient(180deg, rgba(248, 248, 248, 0.00) 0%, rgba(248, 248, 248, 0.12) 100%)",
+        cellFontSize: 18,
+        headerSplitColor: "transparent",
+      },
+      Select: {
+        colorBgContainer: "#464646",
+        colorBorder: "none",
+        paddingContentVertical: 12,
+        padding: 12,
+        optionActiveBg: "#464646",
+        selectorBg: "#464646",
+        multipleItemBg: "#464646",
+        colorBgElevated: "#464646",
+      },
+      Modal: {
+        titleFontSize: 24,
+        fontSizeIcon: 24,
+      },
+      Timeline: {
+        dotBorderWidth: 1,
+        tailColor: "#464646",
+        tailWidth: 1,
+      },
+      DatePicker: {
+        colorBgContainer: "#323232",
+        hoverBg: "#464646",
+        activeBg: "#464646",
+        colorBgBase: "#fff",
+        borderRadius: 8,
+        activeBorderColor: "#c1a06a",
+        colorText: "#fff",
+        colorBorder: "transparent",
+        hoverBorderColor: "transparent",
+        boxShadow: "none",
+        activeShadow: "0",
+      },
+      Slider: {
+        dotSize: 0,
+        controlSize: 16,
+        dotBorderColor: "transparent",
+        handleLineWidth: 0,
+        dotActiveBorderColor: "transparent",
+        trackBg: "#fff",
+        handleActiveColor: "transparent",
+        trackHoverBg: "#fff",
+      },
+      Radio: {
+        borderRadius: 4,
+        buttonCheckedBg: "#000",
+        buttonBg: "#464646",
+        buttonSolidCheckedActiveBg: "#fff",
+        buttonSolidCheckedHoverBg: "#fff",
+        buttonSolidCheckedBg: "#fff",
+        buttonSolidCheckedColor: "#000",
+      },
+      Tooltip: {
+        zIndexPopup: 1,
+      },
+    },
+  },
+};
